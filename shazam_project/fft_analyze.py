@@ -11,6 +11,7 @@ import numpy as np
 
 
 def analyze_audio(samples, sample_rate: int, output_path: str | Path = "fft_output.png") -> Path:
+	"""Write a diagnostic FFT visualization; this does not identify songs."""
 	array = np.asarray(samples, dtype=np.float32).reshape(-1)
 
 	if array.size == 0:

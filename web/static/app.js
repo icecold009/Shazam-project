@@ -427,8 +427,13 @@ function renderResult(data) {
         resultDiv.innerText = data.error || 'Too many requests. Please wait and try again.';
         return;
     }
-    if (data.status === 'no_token') {
-        resultDiv.innerText = 'Server: AUDD token not configured.';
+    if (data.status === 'not_configured') {
+        resultDiv.innerText = data.error || 'No recognition backend is configured.';
+        renderRetryButton();
+        return;
+    }
+    if (data.status === 'invalid_audio') {
+        resultDiv.innerText = `${data.error_code || 'invalid_audio'}: ${data.error || 'Audio was rejected.'}`;
         renderRetryButton();
         return;
     }

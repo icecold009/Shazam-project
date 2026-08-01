@@ -4,7 +4,7 @@ from shazam_project.config import load_config, missing_configuration
 from shazam_project.display import show_result
 from shazam_project.fft_analyze import analyze_audio
 from shazam_project.matcher import match_audio
-from shazam_project.recorder import load_audio_file, record_microphone
+from shazam_project.recorder import AudioInputError, load_audio_file, record_microphone
 
 
 def main() -> int:
@@ -18,8 +18,8 @@ def main() -> int:
         for name in missing:
             print(f"- {name}")
         print()
-        print("The app can still record and load audio now.")
-        print("Recognition will stay disabled until the token is added later.")
+        print("The app can still validate, analyze, and attempt local matching.")
+        print("Provider matching will continue to the next configured backend.")
 
     print("Configuration loaded successfully.")
 
@@ -29,16 +29,23 @@ def main() -> int:
         if mode == "mic":
             duration = input("Recording length in seconds [8]: ").strip()
             duration_seconds = int(duration) if duration else config.audio_seconds
-            clip = record_microphone(duration_seconds=duration_seconds)
+            clip = record_microphone(
+                duration_seconds=duration_seconds,
+                sample_rate=config.internal_sample_rate,
+                config=config,
+            )
             print(f"Captured {len(clip.samples)} samples at {clip.sample_rate} Hz from microphone.")
         elif mode == "file":
             file_path = input("Enter a WAV file path: ").strip().strip('"')
-            clip = load_audio_file(file_path)
+            clip = load_audio_file(file_path, config=config)
             print(f"Loaded {clip.path} with {len(clip.samples)} samples at {clip.sample_rate} Hz.")
         else:
             print("Invalid choice. Use 'mic' or 'file'.")
             return 1
-    except (ValueError, FileNotFoundError, RuntimeError) as exc:
+    except AudioInputError as exc:
+        print(f"Audio input error [{exc.code}]: {exc.message}")
+        return 1
+    except (FileNotFoundError, RuntimeError, ValueError) as exc:
         print(f"Audio input error: {exc}")
         return 1
 
@@ -48,13 +55,13 @@ def main() -> int:
         print(f"FFT analysis error: {exc}")
         return 1
 
-    print(f"FFT analysis saved to {fft_output}")
-    print("Audio input and FFT analysis are ready for the next phase: matching.")
+    print(f"FFT diagnostic visualization saved to {fft_output}")
+    print("FFT is diagnostic only; song identification uses provider matching or spectrogram peak hash pairs.")
 
     try:
         result = match_audio(clip, config)
-    except Exception as exc:
-        print(f"Matching error: {exc}")
+    except Exception:
+        print("Matching error: recognition failed.")
         return 1
 
     show_result(result)
