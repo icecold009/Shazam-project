@@ -8,7 +8,23 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from scripts.evaluation import load_source_manifest, resolve_manifest_path
+from scripts.record_benchmark import _decode_source
 from shazam_project.fingerprint import build_index
+from shazam_project.recorder import AudioClip, normalize_audio
+
+
+def _load_source_clip(audio_path: str) -> AudioClip:
+    path = Path(audio_path)
+    samples, sample_rate = _decode_source(path)
+    return normalize_audio(
+        samples,
+        sample_rate,
+        source="source",
+        target_sample_rate=44100,
+        min_audio_seconds=0.0,
+        max_audio_seconds=float("inf"),
+        path=path,
+    )
 
 
 def main() -> int:
@@ -43,7 +59,7 @@ def main() -> int:
             }
         )
 
-    output = build_index(tracks, args.output)
+    output = build_index(tracks, args.output, track_loader=_load_source_clip)
     print(f"Indexed {len(tracks)} tracks into {output}")
     return 0
 

@@ -177,6 +177,33 @@ def test_ffmpeg_timeout_and_failure_are_stable(tmp_path):
     assert failure_error.value.code == "ffmpeg_conversion_failed"
 
 
+def test_ffmpeg_conversion_applies_duration_and_size_bounds(tmp_path):
+    source = tmp_path / "input.mp3"
+    output = tmp_path / "output.wav"
+    source.write_bytes(b"audio")
+
+    def fake_run(command, **_kwargs):
+        output.write_bytes(b"wav")
+        return MagicMock(returncode=0)
+
+    with (
+        patch("shazam_project.recorder.shutil.which", return_value="ffmpeg"),
+        patch("shazam_project.recorder.subprocess.run", side_effect=fake_run) as run,
+    ):
+        convert_with_ffmpeg(
+            source,
+            output,
+            sample_rate=44100,
+            timeout=1,
+            max_duration_seconds=30,
+            max_output_bytes=1024,
+        )
+
+    command = run.call_args.args[0]
+    assert command[command.index("-t") + 1] == "31.0"
+    assert command[command.index("-fs") + 1] == "1025"
+
+
 def subprocess_timeout():
     import subprocess
 

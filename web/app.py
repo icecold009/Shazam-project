@@ -35,7 +35,7 @@ CORS_ORIGINS = [
     origin.strip() for origin in os.getenv("CORS_ORIGINS", "").split(",") if origin.strip()
 ]
 CORS(app, origins=CORS_ORIGINS)
-app.config["MAX_CONTENT_LENGTH"] = int(os.getenv("MAX_UPLOAD_BYTES", str(25 * 1024 * 1024)))
+app.config["MAX_CONTENT_LENGTH"] = max(1, load_config().max_upload_bytes)
 
 SUPPORTED_WEB_FORMATS = ("wav", "mp3", "m4a", "aac", "ogg", "flac", "webm")
 SUPPORTED_WEB_SUFFIXES = {f".{extension}" for extension in SUPPORTED_WEB_FORMATS}
@@ -477,6 +477,8 @@ def _load_web_upload(upload, config: AppConfig):
                 converted_path,
                 sample_rate=config.internal_sample_rate,
                 timeout=config.ffmpeg_timeout_seconds,
+                max_duration_seconds=config.max_audio_seconds,
+                max_output_bytes=config.max_upload_bytes,
             )
             wav_path = converted_path
         return load_audio_file(wav_path, config=config, max_bytes=config.max_upload_bytes)

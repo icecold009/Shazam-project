@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from scripts import benchmark, evaluation, record_benchmark
+from scripts import benchmark, build_fingerprint_index, evaluation, record_benchmark
 from scripts.evaluation import ManifestValidationError, load_clip_manifest, load_source_manifest
 from scripts.update_readme import update_readme, validate_complete_results
 from shazam_project.config import AppConfig
@@ -83,6 +83,20 @@ def test_source_manifest_requires_all_provenance_fields_and_existing_audio(tmp_p
     incomplete = _sources_csv(tmp_path / "incomplete", complete=False)
     with pytest.raises(ManifestValidationError, match="provenance_or_license_note"):
         load_source_manifest(incomplete)
+
+
+def test_source_index_loader_does_not_apply_query_duration_limit(monkeypatch, tmp_path):
+    samples = np.zeros(31 * 8000, dtype=np.float32)
+    monkeypatch.setattr(
+        build_fingerprint_index,
+        "_decode_source",
+        lambda _path: (samples, 8000),
+    )
+
+    clip = build_fingerprint_index._load_source_clip(tmp_path / "source.mp3")
+
+    assert clip.sample_rate == 44100
+    assert clip.samples.size / clip.sample_rate == pytest.approx(31.0, abs=0.01)
 
 
 def test_source_manifest_rejects_duplicate_unstable_ids(tmp_path):

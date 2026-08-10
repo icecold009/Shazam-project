@@ -136,7 +136,7 @@ def test_non_wav_upload_is_converted_by_ffmpeg(monkeypatch, tmp_path):
     monkeypatch.setattr(
         web_app,
         "convert_with_ffmpeg",
-        lambda source, output, sample_rate, timeout: write_wav(
+        lambda source, output, sample_rate, timeout, **_kwargs: write_wav(
             output, valid_samples(), sample_rate=8000
         ),
     )
