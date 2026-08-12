@@ -123,7 +123,12 @@
             const root = document.documentElement;
             const btn = document.getElementById('themeToggle');
             const STORE_KEY = 'shazam_theme';
-            const saved = localStorage.getItem(STORE_KEY);
+            let saved = null;
+            try {
+                saved = localStorage.getItem(STORE_KEY);
+            } catch {
+                // Theme persistence is optional.
+            }
             if (saved === 'light' || saved === 'dark') root.setAttribute('data-theme', saved);
 
             function updateLabel() {
@@ -137,7 +142,11 @@
                 const current = root.getAttribute('data-theme');
                 const next = current === 'dark' ? 'light' : 'dark';
                 root.setAttribute('data-theme', next);
-                localStorage.setItem(STORE_KEY, next);
+                try {
+                    localStorage.setItem(STORE_KEY, next);
+                } catch {
+                    // Theme persistence is optional.
+                }
                 updateLabel();
             });
         })();

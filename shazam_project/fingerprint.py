@@ -5,7 +5,7 @@ import json
 from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 import numpy as np
 from scipy.ndimage import maximum_filter
@@ -155,14 +155,16 @@ def build_index(
     tracks: Iterable[dict[str, str]],
     output_path: str | Path,
     config: FingerprintConfig = DEFAULT_CONFIG,
+    track_loader: Callable[[str], AudioClip] | None = None,
 ) -> Path:
     """Build a JSON fingerprint index from clean source tracks."""
     track_metadata: dict[str, dict[str, str]] = {}
     hash_index: dict[str, list[list[Any]]] = defaultdict(list)
+    loader = track_loader or load_audio_file
 
     for track in tracks:
         track_id = track["track_id"]
-        clip = load_audio_file(track["audio_path"])
+        clip = loader(track["audio_path"])
         hashes = fingerprint_audio(clip.samples, clip.sample_rate, config)
         track_metadata[track_id] = {
             "title": track.get("title", ""),

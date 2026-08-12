@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 
 from shazam_project.fingerprint import build_index, fingerprint_audio, match_local_index
-from shazam_project.recorder import load_audio_file
+from shazam_project.recorder import AudioClip, load_audio_file
 
 
 def _write_synthetic_track(path: Path, frequencies: list[int], duration: int = 15) -> None:
@@ -71,6 +71,27 @@ class FingerprintTests(unittest.TestCase):
             self.assertEqual(result["title"], "Track A")
             self.assertEqual(result["artist"], "Artist A")
             self.assertGreater(result["votes"], 0)
+
+    def test_index_builder_accepts_a_source_track_loader(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            index = root / "index.json"
+            track_path = root / "source.mp3"
+            track_path.write_bytes(b"source audio")
+            clip = AudioClip(
+                np.zeros(44100 * 4, dtype=np.float32),
+                44100,
+                "source",
+                track_path,
+            )
+
+            build_index(
+                [{"track_id": "source", "audio_path": str(track_path)}],
+                index,
+                track_loader=lambda _path: clip,
+            )
+
+            self.assertTrue(index.is_file())
 
 
 if __name__ == "__main__":

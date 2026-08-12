@@ -21,21 +21,59 @@ let isProcessing = false;
 const HISTORY_KEY = 'shazam_guest_history';
 const SAVE_HISTORY_KEY = 'shazam_save_history_enabled';
 
+function getStorageArea(name) {
+    try {
+        return window[name];
+    } catch {
+        return null;
+    }
+}
+
+function readStorage(name, key) {
+    const storage = getStorageArea(name);
+    if (!storage) return null;
+    try {
+        return storage.getItem(key);
+    } catch {
+        return null;
+    }
+}
+
+function writeStorage(name, key, value) {
+    const storage = getStorageArea(name);
+    if (!storage) return;
+    try {
+        storage.setItem(key, value);
+    } catch {
+        // Browser storage is optional; recognition must still work without it.
+    }
+}
+
+function removeStorage(name, key) {
+    const storage = getStorageArea(name);
+    if (!storage) return;
+    try {
+        storage.removeItem(key);
+    } catch {
+        // Browser storage is optional; recognition must still work without it.
+    }
+}
+
 function setThemeFromStorage() {
     const root = document.documentElement;
-    const saved = localStorage.getItem('shazam_theme');
+    const saved = readStorage('localStorage', 'shazam_theme');
     if (saved === 'light' || saved === 'dark') {
         root.setAttribute('data-theme', saved);
     }
 }
 
 function isHistoryEnabled() {
-    const raw = sessionStorage.getItem(SAVE_HISTORY_KEY);
+    const raw = readStorage('sessionStorage', SAVE_HISTORY_KEY);
     return raw === null ? true : raw === 'true';
 }
 
 function setHistoryEnabled(value) {
-    sessionStorage.setItem(SAVE_HISTORY_KEY, String(value));
+    writeStorage('sessionStorage', SAVE_HISTORY_KEY, String(value));
 }
 
 function loadHistory() {
@@ -47,11 +85,11 @@ function loadHistory() {
 }
 
 function saveHistory(history) {
-    sessionStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    writeStorage('sessionStorage', HISTORY_KEY, JSON.stringify(history));
 }
 
 function clearHistory() {
-    sessionStorage.removeItem(HISTORY_KEY);
+    removeStorage('sessionStorage', HISTORY_KEY);
 }
 
 function addToHistory(item) {
@@ -129,6 +167,17 @@ function stopVisualizer() {
     audioContext = null;
     analyser = null;
     sourceNode = null;
+}
+
+function stopMediaStream() {
+    const stream = mediaStream;
+    mediaStream = null;
+    if (!stream) return;
+    try {
+        stream.getTracks().forEach(track => track.stop());
+    } catch {
+        // Cleanup is best effort when a browser stream is already unavailable.
+    }
 }
 
 function startVisualizerLoop() {
@@ -538,10 +587,7 @@ recBtn.addEventListener('click', async () => {
                 stopTimer = null;
             }
 
-            if (mediaStream) {
-                mediaStream.getTracks().forEach(track => track.stop());
-                mediaStream = null;
-            }
+            stopMediaStream();
 
             stopVisualizer();
             setListeningState(false);
@@ -582,6 +628,11 @@ recBtn.addEventListener('click', async () => {
             resultDiv.innerText = 'Recording stopped automatically after 10 seconds.';
         }, 10000);
     } catch (err) {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            try { mediaRecorder.stop(); } catch { }
+        }
+        mediaRecorder = null;
+        stopMediaStream();
         stopVisualizer();
         setListeningState(false);
         resultDiv.innerText = 'Microphone error: ' + err;

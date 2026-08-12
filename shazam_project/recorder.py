@@ -302,6 +302,8 @@ def convert_with_ffmpeg(
     *,
     sample_rate: int,
     timeout: int,
+    max_duration_seconds: float | None = None,
+    max_output_bytes: int | None = None,
 ) -> Path:
     """Convert a documented web format to normalized PCM WAV."""
     ffmpeg = shutil.which("ffmpeg")
@@ -309,21 +311,39 @@ def convert_with_ffmpeg(
         raise AudioInputError("ffmpeg_unavailable", "FFmpeg is required for this audio format.")
     if timeout <= 0:
         raise AudioInputError("ffmpeg_timeout", "FFmpeg conversion timed out.")
+    if max_duration_seconds is not None and max_duration_seconds <= 0:
+        raise AudioInputError("invalid_duration", "Audio duration limit must be greater than zero.")
+    if max_output_bytes is not None and max_output_bytes <= 0:
+        raise AudioInputError(
+            "upload_too_large", "Audio output size limit must be greater than zero."
+        )
     command = [
         ffmpeg,
         "-nostdin",
         "-y",
         "-i",
         str(input_path),
-        "-vn",
-        "-ac",
-        "1",
-        "-ar",
-        str(sample_rate),
-        "-sample_fmt",
-        "s16",
-        str(output_path),
     ]
+    if max_duration_seconds is not None:
+        # Keep one extra second so the shared loader can reject an input that
+        # exceeds the configured duration while still bounding FFmpeg work.
+        command.extend(["-t", str(float(max_duration_seconds) + 1.0)])
+    if max_output_bytes is not None:
+        # Likewise, stop just after the configured limit so load_audio_file
+        # rejects the output instead of accepting a truncated file.
+        command.extend(["-fs", str(int(max_output_bytes) + 1)])
+    command.extend(
+        [
+            "-vn",
+            "-ac",
+            "1",
+            "-ar",
+            str(sample_rate),
+            "-sample_fmt",
+            "s16",
+            str(output_path),
+        ]
+    )
     try:
         completed = subprocess.run(
             command,
