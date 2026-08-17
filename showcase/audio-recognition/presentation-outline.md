@@ -1,6 +1,6 @@
 # DIY Shazam — presentation outline
 
-**Status:** Source-verified showcase draft. The repository is a local/CI-verified prototype, not a verified live production demo. This showcase branch is `codex/showcase-audio-recognition` at `b0b8d79`; the latest remote CI evidence applies to merged `origin/main` at `c853e3a`, not this unpushed branch.
+**Status:** Source-verified showcase draft. The repository is a locally validated prototype, not a verified live production demo. This audit PR branch is `codex/audio-recognition-p0-audit` at `6eb46cf`; local pytest (193), Ruff, and diff checks passed, while the latest remote CI evidence applies to merged `origin/main`/PR #8 and no current-branch CI status entries are reported.
 
 **Audience:** General portfolio audience
 
@@ -116,11 +116,11 @@ flowchart LR
 - Merged-main branch coverage: 81%, above the 70% gate
 - Ruff, pip-audit, Gitleaks, Render schema, and container smoke passed remotely
 - Benchmark tooling exists, but no complete corpus or credentialed provider run is imported
-- Current showcase branch is not yet separately CI-verified
+- Current audit branch has local checks but is not yet separately remote-CI-verified
 
 **Recommended visual:** A two-column “verified / still open” scorecard. Do not show invented accuracy or latency values.
 
-**Speaker notes:** “The strongest evidence is engineering validation on merged main: the remote CI run covered tests, coverage, linting, dependency and secret scans, Render schema validation, and production-container smoke. What it does not prove is song-recognition quality. The benchmark is deliberately gated until there are 30 legitimate source tracks, 90 microphone clips per backend, three recording conditions, operator metadata, and provider configuration.”
+**Speaker notes:** “The strongest remote evidence is engineering validation on merged main: the CI run covered tests, coverage, linting, dependency and secret scans, Render schema validation, and production-container smoke. This audit branch also passes 193 local tests, Ruff, and diff checks, but that does not replace remote CI or prove song-recognition quality. The benchmark is deliberately gated until there are 30 legally reusable source tracks, 90 microphone clips per backend, three recording conditions, operator metadata, and provider configuration.”
 
 **Evidence:** [Merged PR #8](https://github.com/icecold009/Audio-Recognition/pull/8), [`evaluation/README.md`](../../evaluation/README.md), [`scripts/benchmark.py`](../../scripts/benchmark.py), [`TODO.md`](../../TODO.md)
 
@@ -140,4 +140,3 @@ flowchart LR
 **Speaker notes:** “The project taught me to separate a convincing demo from a trustworthy claim. The next useful work is not to add another backend; it is to collect legal, reproducible evidence, verify the browser journey, and make the current branch pass the same release gates. Until then, the honest status is: technically hardened and CI-validated on merged main, but not quality-benchmarked or live-demo verified.”
 
 **Evidence:** [`TODO.md`](../../TODO.md), [`evaluation/README.md`](../../evaluation/README.md), [`evidence-checklist.md`](evidence-checklist.md)
-

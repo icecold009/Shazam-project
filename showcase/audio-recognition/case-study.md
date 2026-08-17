@@ -4,7 +4,7 @@
 
 DIY Shazam is an audio-recognition project with a command-line entry point and a Flask browser application. It accepts microphone input and audio files, normalizes them through a shared pipeline, and attempts recognition through configured external providers or a local constellation-hash index.
 
-**Current status:** Source-verified and CI-validated on merged `main`; the current showcase branch (`codex/showcase-audio-recognition`, `b0b8d79`) is unpushed and not separately CI-verified. No live demo URL, complete real-world benchmark, or credentialed provider result is currently available.
+**Current status:** Source-verified on audit branch `codex/audio-recognition-p0-audit` at `6eb46cf`, with 193 local pytest tests, Ruff, and `git diff --check` passing. PR #11 is pushed, open, and draft; no current-branch CI status entries were reported by the connected GitHub check. No live demo URL, complete real-world benchmark, or credentialed provider result is currently available.
 
 ## Problem and audience
 
@@ -23,7 +23,7 @@ The implementation goals were to:
 - bound upload size, duration, FFmpeg work, and request quotas;
 - make benchmark output reproducible without exposing credentials or committing audio.
 
-The important constraints are external credentials, FFmpeg and `fpcalc` availability, microphone hardware, provider quotas, legal source audio, and the lack of a clean usable Python runtime in the current Windows checkout. A fresh local pytest run is currently blocked by an incompatible virtual-environment install: `pytest` cannot import `SectionWrapper` from `iniconfig`.
+The important constraints are external credentials, FFmpeg and `fpcalc` availability, microphone hardware, provider quotas, and legal source audio. The supported `.venv-pipeline` interpreter could not be launched without scoped elevation in this sandbox because its target Python process was inaccessible; the requested pytest command then completed successfully under that scoped launch.
 
 ## Solution and key user flow
 
@@ -66,7 +66,7 @@ The benchmark runner requires 30 source tracks, one 4-, 8-, and 15-second microp
 - Flask `web/` is the single supported browser application.
 - The browser supports upload, recording, waveform visualization, light/dark theme, retry states, and optional session-only history.
 - Web uploads support WAV, MP3, M4A, AAC, OGG, FLAC, and WEBM; FFmpeg conversion is bounded by duration and output-size limits.
-- The latest local hardening commit (`b0b8d79`) adds safer browser storage handling, microphone-track cleanup, bounded FFmpeg conversion, and a normalized source loader for fingerprint-index construction.
+- The current audit branch (`6eb46cf`) includes the `b0b8d79` audio-pipeline/browser-recovery hardening baseline plus the documentation and evaluation-gate reconciliation.
 - CI runs Python tests on 3.10, 3.11, and 3.12, Ruff formatting/lint, branch coverage, dependency auditing, secret scanning, Render Blueprint validation, and a production-container smoke path.
 
 ## Validation and results
@@ -78,17 +78,23 @@ The benchmark runner requires 30 source tracks, one 4-, 8-, and 15-second microp
 - The repository contains a reproducible benchmark command and refuses incomplete README imports.
 - The checked-in FFT image is a real project artifact, but it is a diagnostic spectrum and not evidence of recognition quality.
 
+### Verified locally on the current audit branch
+
+- `.venv-pipeline\Scripts\python.exe -m pytest -q` completed with `193 passed in 9.56s`; the initial non-elevated launcher failed before test collection because it could not create the configured Python process.
+- `.venv-pipeline\Scripts\ruff.exe check .` passed, and `git diff --check` produced no output.
+- A local development HTTP smoke returned 200 for `/` and `/healthz`, exposed upload and record controls, returned non-secret `/api/status`, returned the stable `invalid_audio` response for a malformed upload, and returned `/readyz` 503 because no recognition backend is configured.
+- `sounddevice.query_devices()` listed 33 host devices, including input and output devices. No microphone recording or provider call was made.
+
 ### Verified remotely on merged `main`
 
 The merged [PR #8](https://github.com/icecold009/Audio-Recognition/pull/8) records GitHub Actions run `30738959312`: 190 tests passed in each Python 3.10, 3.11, and 3.12 matrix job; branch coverage reached 81% against a 70% threshold; Ruff, `pip-audit`, Gitleaks, Render schema validation, production image build, and external container smoke passed. The smoke path exercised `/`, `/healthz`, the expected production `/readyz` and `/api/status` failures without configuration, malformed upload rejection, and a mocked successful recognition response.
 
 ### Not yet verified
 
-- The current branch has not received a fresh CI run.
-- The local pytest command is blocked by the stale/incompatible virtual environment.
+- The current branch has not received a remote CI run; local checks are not equivalent to the full hosted matrix.
 - No complete real-world corpus has been recorded.
 - No credentialed provider comparison, recognition accuracy, p95 latency, catalog coverage, or live deployment smoke is claimed.
-- No browser-engine test or clean product screenshot has been captured in this task.
+- The in-app browser could not reach the elevated local listener, so no browser-engine/permission screenshot or real browser microphone capture is claimed. Source and mocked tests cover the recording fallback and cleanup paths.
 
 ## Challenges and tradeoffs
 
@@ -106,7 +112,7 @@ The main lesson is that “it returned a song once” is not a useful quality cl
 2. Run the benchmark with reviewed credentials and publish generated results only after the completeness gate passes.
 3. Add browser-engine smoke coverage for recording, upload, permission denial, unsupported `MediaRecorder`, result states, and resource cleanup.
 4. Capture a clean screenshot set from the supported Flask app and attach commands/captions to each image.
-5. Repair the local validation environment and run the full release gate on the current branch.
+5. Make the supported pipeline interpreter launch without elevation in the developer environment and run the full release gate on the current branch.
 6. Verify a deployed instance separately if a live URL becomes available.
 
 ## Technologies used
@@ -126,4 +132,3 @@ Python, Flask, NumPy, SciPy, SoundFile, SoundDevice, Requests, Matplotlib, FFmpe
 - [`shazam_project/fingerprint.py`](../../shazam_project/fingerprint.py)
 - [`Dockerfile`](../../Dockerfile)
 - [`render.yaml`](../../render.yaml)
-

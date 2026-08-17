@@ -6,15 +6,16 @@
 
 | Evidence | Status | Use in showcase |
 |---|---|---|
-| Repository source and documentation | Verified at `b0b8d79` | Supports the architecture, UI, API contract, limits, matcher behavior, and limitations. |
+| Repository source and documentation | Verified at `6eb46cf` | Supports the architecture, UI, API contract, limits, matcher behavior, evaluation gates, and limitations. |
 | Existing FFT image | Verified: [`docs/screenshots/fft-output.png`](../../docs/screenshots/fft-output.png) | Technical visual only; caption it as “Diagnostic frequency spectrum; FFT is not the recognition algorithm.” |
 | Merged-main CI | Verified remotely in [PR #8](https://github.com/icecold009/Audio-Recognition/pull/8) | Supports 190 tests per Python 3.10–3.12 job, 81% branch coverage, static/security gates, Render validation, and container smoke on merged main. |
-| Current showcase branch CI | Missing | Push/open a draft PR or run equivalent CI before claiming the current branch is release-gate verified. |
+| Current audit branch CI | Not reported by connected GitHub check | PR #11 is pushed and draft; local pytest (193), Ruff, and `git diff --check` passed, but local checks are not the hosted matrix/release gate. |
 | Live demo | Missing | Supply a public URL, then run a browser smoke check and label it live evidence. |
 | Real product screenshots | Missing | Capture from the supported Flask app; no browser screenshot was available in this task. |
 | Real-world benchmark results | Missing by design | Assemble the legal corpus and run `scripts/benchmark.py`; do not infer quality from synthetic tests or CI. |
 | Credentialed provider smoke | Missing | Configure credentials outside Git and record a redacted, reproducible smoke result. |
-| Fresh local test run | Blocked | `.venv` launches only with elevation but has an incompatible `pytest`/`iniconfig` install; no fresh local pass is claimed. |
+| Fresh local test run | Verified with scoped launch | `.venv-pipeline\Scripts\python.exe -m pytest -q` reported `193 passed in 9.56s`; the initial non-elevated launch failed before collection because the configured Python process was inaccessible. |
+| Host audio device enumeration | Verified, capture not attempted | `sounddevice.query_devices()` listed 33 devices, including microphone inputs and speaker outputs. This does not prove a real recording or provider recognition result. |
 
 ## Screenshot plan
 
@@ -45,13 +46,13 @@
 - Provider superiority, catalog coverage, or robustness under noise/re-encoding.
 - Production uptime, user adoption, testimonials, or deployment readiness.
 - A live hosted URL or browser-engine compatibility.
-- Current-branch CI status after `b0b8d79`.
+- Current-branch remote CI status after `6eb46cf`.
+- Browser-engine permission state, real microphone capture, and device-to-provider recognition.
 
 ## Follow-up capture procedure
 
-1. Repair or recreate the Python environment from `requirements.txt` and `requirements-dev.txt`.
-2. Run `python -m pytest -q`, coverage, Ruff, compile, and diff checks; record the exact commit and output.
+1. Make the supported pipeline interpreter launch without elevation, or document the scoped launch requirement for the developer environment.
+2. Run the full release gate, coverage, compile, Ruff, and diff checks; record the exact commit and output.
 3. Start `python web/app.py` in development mode and capture the home, status, invalid-upload, no-match, and matched-mock states.
 4. If a live URL is provided, verify the same journey against the deployed app and label screenshots as live rather than local.
-5. Assemble the legally reusable evaluation corpus, run the documented benchmark, review generated JSON/Markdown, and import results only if the completeness gate passes.
-
+5. Assemble the legally reusable evaluation corpus with track-level provenance/license notes, run the documented benchmark, review generated JSON/Markdown, and import results only if the completeness gate passes.
