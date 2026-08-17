@@ -4,13 +4,13 @@ This is the working checklist derived from the repository review on 2026-07-31. 
 
 ## Current assessment
 
-Strict evidence-based score at review time: **5/9**.
+Strict evidence-based score at review time: **6/9**.
 
 | Area | Current score | Main reason |
 |---|---:|---|
-| Correctness | 1.5/3 | Recognition works through provider integrations, but accuracy is unmeasured and several runtime paths are fragile. |
-| Engineering | 2/3 | The module split and basic CI are good, but production hardening and deeper browser-state coverage remain open. |
-| Documentation | 1/2 | The structure is strong, but the documents mix planned product architecture with implemented functionality. |
+| Correctness | 1.5/3 | Recognition and input validation are covered by the current test suite, but real-world accuracy and browser-engine failure paths remain unmeasured. |
+| Engineering | 2.5/3 | Production readiness, atomic quotas, bounded uploads, WSGI configuration, CI, and 193 local tests are evidenced; browser-state depth remains open. |
+| Documentation | 1.5/2 | Implemented behavior, limitations, and evaluation gates are now separated; benchmark evidence and screenshot provenance remain open. |
 | Distinctiveness | 0.5/2 | The project is a capable Shazam-style integration, not yet a novel recognition system. |
 
 Do not raise these scores based on screenshots or placeholder metrics alone. Update them only after the evidence gates below are satisfied.
@@ -55,9 +55,9 @@ Complete these main tasks in order. A main task may be ticked only after its sub
 ### Main task 4 — Production configuration and security
 
 - [x] Reconcile `SUPABASE_SERVICE_ROLE_KEY` with the server-only service-role security model.
-- [ ] Decide whether `INTERNAL_API_SECRET` is required for the supported browser flow.
-- [ ] Standardize response fields and statuses across providers and the CLI/browser consumers.
-- [ ] Add a startup/health check for provider, Supabase, FFmpeg, and `fpcalc` configuration.
+- [x] Decide that `INTERNAL_API_SECRET` is not required for the supported same-origin browser flow; if set, it is reserved for deliberate server-to-server callers and the browser flow is intentionally unauthorized.
+- [x] Standardize response fields and statuses across providers and the CLI/browser consumers.
+- [x] Add a startup/health check for provider, Supabase, FFmpeg, `fpcalc`, and writable temporary storage configuration.
 - [x] Make quota checks and increments atomic, and define fail-closed behavior for Supabase failures.
 - [x] Bound cooldown/client state and document the trusted proxy model.
 - [x] Add `Retry-After` headers and disable debug mode outside explicit local development.
@@ -66,7 +66,7 @@ Complete these main tasks in order. A main task may be ticked only after its sub
 
 ### Main task 5 — Test-depth expansion
 
-- [ ] Test rate-limit responses and quota accounting through public routes.
+- [x] Test rate-limit responses and quota accounting through public routes.
 - [x] Test configuration loading, missing keys, invalid `FP_CALC_PATH`, and provider combinations.
 - [x] Add mocked microphone tests for invalid duration/sample rate, capture failure, and cleanup.
 - [ ] Add browser/component tests for recording, upload, loading, matched, no-match, unauthorized, rate-limited, and network-error states.
@@ -88,10 +88,10 @@ Complete these main tasks in order. A main task may be ticked only after its sub
 
 ### Main task 7 — Documentation reconciliation
 
-- [ ] Split documentation into Implemented, Known limitations, Planned, and Evaluation evidence sections.
-- [ ] Mark unsupported Supabase/auth/history/RLS/account/settings claims as planned or remove them.
+- [x] Split documentation into Implemented, Known limitations, Planned, and Evaluation evidence sections.
+- [x] Mark unsupported Supabase/auth/history/RLS/account/settings claims as planned or remove them.
 - [x] Reconcile README content with the actual Flask source tree.
-- [ ] Reconcile documented 8-second CLI, 5-second RapidAPI trim, and 10-second browser-recording behavior.
+- [x] Reconcile documented 8-second CLI, 5-second RapidAPI trim, and 10-second browser-recording behavior.
 - [ ] Document the exact source and command for each screenshot, and add failure-state screenshots where useful.
 - [x] Remove unsupported platform claims and document API statuses, backend order, environment variables, and security boundaries.
 - [ ] Tick Main task 7 only after documentation describes shipped behavior rather than aspiration.
@@ -171,7 +171,7 @@ Complete these main tasks in order. A main task may be ticked only after its sub
 - [x] Reconcile `SUPABASE_SERVICE_ROLE_KEY` with the documented server-only security model.
 - [x] Require `X-API-Secret` directly when configured; Origin/Referer never authenticates browser clients.
 - [x] Keep real server secrets out of browser configuration and static assets.
-- [x] Make the Flask-served UI work when `INTERNAL_API_SECRET` is enabled, or remove that mode from the supported flow. Configured same-origin/allowlisted browser requests are accepted without exposing the secret.
+- [x] Keep `INTERNAL_API_SECRET` out of the supported browser deployment; when deliberately configured for server-to-server callers, requests without the secret are rejected and same-origin headers never bypass authentication.
 - [x] Configure optional cross-origin API access from an allowlist; same-origin browser access is the default.
 - [x] Add RapidAPI configuration to `/api/status`; report the actual active backend order.
 - [x] Standardize response fields and statuses across all providers and the CLI/browser consumers, including local `no_match` responses.
@@ -268,6 +268,7 @@ Record evidence here as work lands:
 
 | Date | Task/check | Evidence | Result |
 |---|---|---|---|
+| 2026-08-17 | Current checkout audit and documentation reconciliation | Dedicated branch `codex/audio-recognition-p0-audit`; supported `.venv-pipeline` ran 193 tests; FFmpeg and fpcalc were available; local browser smoke checked page load, status rendering, and unsupported-upload handling; `/readyz`/quota/WSGI behavior is covered by repository tests. | Production/configuration and documentation checkboxes updated. No provider values, source catalog, microphone clips, benchmark results, or credentialed smoke evidence are present locally, so the real benchmark and release gates remain open. |
 | 2026-08-01 | Production rate limits | Added `production_rate_limits` migration through the Supabase CLI; private row-locked quota RPC, RLS with no public policies, server-only service-role access, HMAC client identifiers, fail-closed 503 handling, development fallback, trusted-proxy configuration, direct API-secret authentication, and Retry-After responses. | 93 tests passed; 68% total branch coverage; compileall and diff checks passed. Local/linked SQL execution remains unavailable: Docker is not running and the linked `shazam-project` is inactive; linked advisors returned no lints and migration listing timed out. |
 | 2026-08-01 | Prompt 3 cleanup and review fixes | Flask status display restored RapidAPI and Supabase fields; local `no_match` uses the shared `result: null` shape; all providers receive normalized mono float32 audio; provider diagnostics are safe; rate limits run before upload processing; fixed 16-bit provider WAV encoding is documented; README/TODO record the validated contract and Prompt 4 production blockers. | 73 tests passed; 66% total branch coverage; compileall and diff checks passed locally; CI and `coverage.xml` artifact are pending this push; Codecov upload previously reported `Repository not found` and remains deferred |
 | 2026-08-01 | CI/test hardening | Added configuration, microphone, Flask, generated-WAV, provider-fallback, safe-rendering, dependency, Ruff, and secret-scan gates; removed committed desktop.ini files, generated FFT artifact, and obsolete development plan. | CI run 73 passed; 146 tests passed; 74% total branch coverage; Python 3.10/3.11/3.12, Ruff, dependency audit, and Gitleaks passed; provider credentials, Supabase, FFmpeg, fpcalc, microphone hardware, and real-world benchmark are intentionally excluded |

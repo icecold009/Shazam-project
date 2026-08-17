@@ -4,6 +4,8 @@ This evaluation is deliberately gated before any recording or provider call. Sou
 
 The target corpus is 30 legally reusable or user-owned source tracks, with one 4-second, one 8-second, and one 15-second speaker-to-microphone clip per track. Record at least three conditions and document genre, era, title, artist, and provenance/license for every source row.
 
+Current gate: this checkout contains only `sources.example.csv` and an ignored metadata cache; it does not contain the 30-track source manifest, source audio, microphone clips, or generated benchmark results. Do not treat metadata-only rows as audio permission. For Free Music Archive material, retain the individual track page and track-level license in `provenance_or_license_note`; the dataset metadata license does not replace the artist-selected audio license. The FMA dataset's official distribution and licensing notes are maintained in the [dataset repository](https://github.com/mdeff/fma).
+
 ## 1. Prepare and validate the source catalog
 
 Copy the example and edit it with real local paths. Do not add the source files or the completed `sources.csv` to Git.
