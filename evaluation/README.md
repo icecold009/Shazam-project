@@ -130,7 +130,7 @@ PowerShell:
 ```powershell
 .\.venv\Scripts\python.exe scripts/update_readme.py `
   --results evaluation/results/benchmark.json `
-  --readme readme.md
+  --readme README.md
 ```
 
 Bash:
@@ -138,7 +138,7 @@ Bash:
 ```bash
 .venv/bin/python scripts/update_readme.py \
   --results evaluation/results/benchmark.json \
-  --readme readme.md
+  --readme README.md
 ```
 
 Review the diff, JSON, and Markdown report before committing. The command must not be used for partial, synthetic, credential-incomplete, or provider-free runs.
