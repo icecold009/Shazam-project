@@ -128,7 +128,7 @@ Complete these main tasks in order. A main task may be ticked only after its sub
 - [ ] Record dataset size, clip length, hardware, operating system, network region, date, provider plan, and warm/cold conditions.
 - [ ] Add confidence intervals or an explicit limitation explaining why the benchmark is too small for them.
 - [x] Implement a fourth local constellation-map/hash-pair backend over a small library, with an index builder and benchmark integration. Real-world accuracy and speed comparison remain open until the corpus is recorded.
-- [ ] Replace `Test set accuracy | X / Y songs matched correctly` in `readme.md` with generated, reviewable results.
+- [ ] Replace `Test set accuracy | X / Y songs matched correctly` in `README.md` with generated, reviewable results.
 - [ ] Remove or substantiate the existing `~2.1 s` and `~3.4 s` performance values.
 
 ### Matcher correctness
