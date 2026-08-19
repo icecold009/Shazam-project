@@ -554,7 +554,7 @@ def test_one_missing_clip_is_visible_and_excluded_from_accuracy(monkeypatch, tmp
     assert summary["missing_inputs"] == 1
     assert results["records"][0]["error_code"] == "missing_clip"
     assert results["records"][0]["status"] == "invalid_audio"
-    readme = tmp_path / "readme.md"
+    readme = tmp_path / "README.md"
     readme.write_text(
         "before\n<!-- BENCHMARK_RESULTS:START -->\nold\n<!-- BENCHMARK_RESULTS:END -->\n",
         encoding="utf-8",
@@ -800,7 +800,7 @@ def _replace_records(results: dict, records: list[dict], clip_count: int) -> dic
 
 
 def test_readme_update_refuses_incomplete_results_without_writing(tmp_path):
-    readme = tmp_path / "readme.md"
+    readme = tmp_path / "README.md"
     original = "before\n<!-- BENCHMARK_RESULTS:START -->\nold\n<!-- BENCHMARK_RESULTS:END -->\n"
     readme.write_text(original, encoding="utf-8")
     incomplete = {"metadata": {"complete": False}, "backend_summary": {}, "clip_count": 1}
@@ -832,7 +832,7 @@ def test_validator_rejects_inconsistent_denominator_even_when_metadata_claims_co
 
 
 def test_readme_update_imports_only_generated_complete_metrics(tmp_path):
-    readme = tmp_path / "readme.md"
+    readme = tmp_path / "README.md"
     readme.write_text(
         "before\n<!-- BENCHMARK_RESULTS:START -->\nold\n<!-- BENCHMARK_RESULTS:END -->\n",
         encoding="utf-8",
