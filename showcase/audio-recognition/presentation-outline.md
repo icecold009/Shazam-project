@@ -24,7 +24,7 @@
 
 **Speaker notes:** “This is DIY Shazam: a song-recognition project built around a practical input pipeline and several interchangeable backends. The interesting part is not just calling an API; it is making microphone input, uploaded files, validation, fallback, and safe failure states behave consistently.”
 
-**Evidence:** [`readme.md`](../../readme.md), [`web/templates/index.html`](../../web/templates/index.html), [`main.py`](../../main.py)
+**Evidence:** [`README.md`](../../README.md), [`web/templates/index.html`](../../web/templates/index.html), [`main.py`](../../main.py)
 
 ## Slide 2 — The problem and the user
 
@@ -41,7 +41,7 @@
 
 **Speaker notes:** “The project is aimed at a developer or learner who wants to understand the full path from audio input to recognition. The hard engineering problem is the boundary between messy audio and a dependable response: malformed files, unsupported formats, provider errors, rate limits, and no-match outcomes all need explicit handling.”
 
-**Evidence:** [`readme.md`](../../readme.md), [`TODO.md`](../../TODO.md), [`docs/01-product-requirements.md`](../../docs/01-product-requirements.md)
+**Evidence:** [`README.md`](../../README.md), [`TODO.md`](../../TODO.md), [`docs/01-product-requirements.md`](../../docs/01-product-requirements.md)
 
 ## Slide 3 — The primary user journey
 
@@ -58,7 +58,7 @@
 
 **Speaker notes:** “From the user’s perspective, the flow is deliberately short: choose a file or record, submit, and read the result. The server converts supported web formats, validates size and duration, normalizes the signal, tries the configured matcher order, and exposes a stable response shape without leaking provider payloads or secrets.”
 
-**Evidence:** [`web/templates/index.html`](../../web/templates/index.html), [`web/app.py`](../../web/app.py), [`shazam_project/recorder.py`](../../shazam_project/recorder.py), [`readme.md`](../../readme.md)
+**Evidence:** [`web/templates/index.html`](../../web/templates/index.html), [`web/app.py`](../../web/app.py), [`shazam_project/recorder.py`](../../shazam_project/recorder.py), [`README.md`](../../README.md)
 
 ## Slide 4 — Product walkthrough
 

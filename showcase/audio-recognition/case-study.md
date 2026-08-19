@@ -121,7 +121,7 @@ Python, Flask, NumPy, SciPy, SoundFile, SoundDevice, Requests, Matplotlib, FFmpe
 
 ## Evidence sources
 
-- [`readme.md`](../../readme.md)
+- [`README.md`](../../README.md)
 - [`TODO.md`](../../TODO.md)
 - [`evaluation/README.md`](../../evaluation/README.md)
 - [`web/app.py`](../../web/app.py)
