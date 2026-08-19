@@ -143,10 +143,10 @@ def update_readme(readme_path: Path, results: dict[str, Any]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Import complete benchmark results into readme.md."
+        description="Import complete benchmark results into README.md."
     )
     parser.add_argument("--results", type=Path, required=True)
-    parser.add_argument("--readme", type=Path, default=Path("readme.md"))
+    parser.add_argument("--readme", type=Path, default=Path("README.md"))
     args = parser.parse_args()
     try:
         results = json.loads(args.results.read_text(encoding="utf-8"))
