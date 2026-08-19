@@ -26,7 +26,7 @@ COPY requirements.txt ./
 RUN python -m pip install --upgrade pip \
     && python -m pip install -r requirements.txt
 
-COPY gunicorn.conf.py main.py readme.md ./
+COPY gunicorn.conf.py main.py README.md ./
 COPY shazam_project ./shazam_project
 COPY web ./web
 COPY scripts ./scripts
