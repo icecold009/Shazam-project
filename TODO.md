@@ -35,6 +35,11 @@ Complete these main tasks in order. A main task may be ticked only after its sub
 - [ ] Replace README placeholder accuracy and timing values with generated, reviewable results.
 - [ ] Tick Main task 1 only after the benchmark can be reproduced from a clean checkout.
 
+The benchmark runner now writes cache, JSON, and Markdown artifacts atomically
+so interrupted runs cannot leave a truncated provider result that looks valid
+on the next replay. This improves reproducibility but does not replace the
+missing lawful corpus, credentials, or real benchmark execution.
+
 ### Main task 2 — Audio-pipeline validation
 
 - [x] Decide and document that FFT is diagnostic only; spectrogram peaks and constellation hash pairs perform local recognition.

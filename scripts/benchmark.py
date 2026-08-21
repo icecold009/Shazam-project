@@ -159,6 +159,15 @@ def _cache_file(cache_dir: Path, key: str) -> Path:
     return cache_dir / f"{key}.json"
 
 
+def _atomic_write_text(path: Path, content: str) -> None:
+    """Write benchmark artifacts without leaving truncated cache records."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.tmp")
+    temporary.write_text(content, encoding="utf-8")
+    temporary.replace(path)
+
+
 def _cache_state(cache_hits: int, cache_misses: int) -> str:
     if cache_hits and cache_misses:
         return "mixed"
@@ -188,7 +197,6 @@ def _write_cache(
     timeout: int,
     result: dict[str, Any],
 ) -> None:
-    cache_dir.mkdir(parents=True, exist_ok=True)
     payload = {
         "cache_schema": CACHE_SCHEMA_VERSION,
         "cache_key": key,
@@ -198,8 +206,9 @@ def _write_cache(
         "settings": _backend_settings(backend, config, timeout),
         "result": _safe_result(result),
     }
-    _cache_file(cache_dir, key).write_text(
-        json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8"
+    _atomic_write_text(
+        _cache_file(cache_dir, key),
+        json.dumps(payload, indent=2, sort_keys=True),
     )
 
 
@@ -621,10 +630,9 @@ def run(
         "backend_summary": summaries,
         "records": records,
     }
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(output, indent=2, sort_keys=True), encoding="utf-8")
+    _atomic_write_text(output_path, json.dumps(output, indent=2, sort_keys=True))
     report_path = report_path or output_path.with_suffix(".md")
-    report_path.write_text(render_markdown(output), encoding="utf-8")
+    _atomic_write_text(report_path, render_markdown(output))
     return output
 
 
