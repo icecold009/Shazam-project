@@ -18,6 +18,33 @@ Validated audio pipeline · Multi-backend matching · Flask web UI · Terminal o
 ## Overview
 DIY Shazam captures audio from the CLI microphone/file path or the Flask browser UI, normalizes it through one bounded audio pipeline, and identifies tracks using RapidAPI/Shazam, AcoustID, AudD, or local spectrogram peaks and constellation hash pairs. FFT output is a diagnostic visualization only; it is not the recognition algorithm. Flask serves the complete browser UI and JSON API from one origin.
 
+## Implemented
+
+- Flask is the supported browser application; `web/app.py` serves the UI and JSON API from one origin.
+- CLI and web inputs use the documented bounded normalization pipeline. The CLI accepts WAV/PCM; the web path converts the documented browser upload formats through FFmpeg.
+- Provider dispatch uses RapidAPI/Shazam, AcoustID, AudD, and the local constellation-hash backend with stable public statuses and safe diagnostics.
+- Production configuration includes Gunicorn, `/healthz`, `/readyz`, bounded uploads and FFmpeg work, atomic Supabase quota operations, trusted-proxy controls, and debug-off defaults outside explicit development mode.
+- The current checkout has 193 passing Python tests. CI also defines Ruff, coverage, dependency-audit, and secret-scanning gates.
+
+## Known limitations
+
+The repository does not currently claim general recognition accuracy or latency. The real-world benchmark corpus, 90 microphone clips, provider comparison, credentialed smoke test, and browser-engine state matrix are still incomplete. Provider catalog coverage, noise, re-encoding, volume or pitch changes, partial clips, live performances, covers, remixes, and alternate releases can all change the result.
+
+Supabase authentication, persistent user history, RLS-backed history, account deletion, user settings, and protected user routes are not implemented product features. History is session-only and optional in the browser UI.
+
+## Planned
+
+- Assemble and run the lawful 30-track / 90-clip benchmark, then import only generated results.
+- Add browser/component coverage for recording, permission denial, unsupported `MediaRecorder`, cleanup, and all public result states.
+- Complete browser-engine screenshots/recordings and credentialed provider smoke evidence.
+- Evaluate the local constellation-hash contribution against provider baselines before changing the distinctiveness score.
+
+## Evaluation evidence
+
+- Reproducible benchmark entry points are documented in [`evaluation/README.md`](evaluation/README.md), but no complete result is present in this checkout.
+- The committed FFT image at [`docs/screenshots/fft-output.png`](docs/screenshots/fft-output.png) is diagnostic output from `shazam_project.fft_analyze.analyze_audio`; the original capture command was not preserved in Git. Recreate it through the CLI's `python main.py` path after choosing `mic` or `file`.
+- The current browser smoke check was run against `python web/app.py` on a local development port with debug disabled. It verified page load, status rendering, and the unsupported-upload error state; it did not use provider credentials or record microphone audio.
+
 ## Performance
 
 | Metric | Result |
@@ -155,6 +182,8 @@ Supported env vars (see `shazam_project.config.load_config()`): `AUDD_API_TOKEN`
 
 ## Web UI
 `python web/app.py` serves `/`, `/static/*`, `/api/match`, and `/api/status` from the same origin. CLI file mode accepts WAV/PCM files. Web uploads support WAV, MP3, M4A, AAC, OGG, FLAC, and WEBM; non-WAV web uploads require FFmpeg on `PATH` and are converted before decoding. The browser also supports microphone recording, manual stop, waveform visualization, loading/error/no-match states, light/dark theme persistence, and session-only recognition history.
+
+The durations are intentionally different by path: CLI microphone mode defaults to 8 seconds and accepts an interactive override; the RapidAPI/Shazam adapter sends at most the first 5 seconds of the normalized clip; browser recording auto-stops after 10 seconds but can be stopped manually; and the reproducible benchmark uses separate 4-second, 8-second, and 15-second microphone clips.
 
 Every input is downmixed to mono float32 samples in `[-1, 1]` and resampled to 44,100 Hz by default. Provider adapters receive temporary mono 16-bit PCM WAV files. Inputs shorter than 1 second, longer than 30 seconds, or larger than 10 MiB are rejected by default; all three limits are configurable.
 
